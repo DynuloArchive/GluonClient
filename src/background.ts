@@ -20,6 +20,9 @@ function createWindow() {
     height: 600,
     frame: false,
     resizable: false,
+    webPreferences: {
+      webSecurity: false,
+    },
   });
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
@@ -62,11 +65,7 @@ app.on('activate', () => {
 app.on('ready', async () => {
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools
-    try {
-      await installVueDevtools();
-    } catch (e) {
-      console.error('Vue Devtools failed to install:', e.toString());
-    }
+    await installVueDevtools();
   }
   createWindow();
 });

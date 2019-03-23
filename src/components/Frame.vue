@@ -13,11 +13,11 @@ import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component
 export default class Frame extends Vue {
-  close() {
+  private close() {
     const remote = require('electron').remote;
     remote.getCurrentWindow().close();
   }
-  minimize() {
+  private minimize() {
     const remote = require('electron').remote;
     remote.getCurrentWindow().minimize();
   }
@@ -39,29 +39,31 @@ export default class Frame extends Vue {
     position: fixed;
     top: 0;
     width: calc(100% - 5em);
+    z-index: 2;
     .buttons {
       position: fixed;
       top: 0;
       right: 0.6em;
       height: 1.7em;
-      .close {
+      * {
+        border-radius: 50%;
         -webkit-app-region: no-drag;
-        background-color: #790f24;
         width: 1.3em;
         height: 1.3em;
         top: calc((1.7em - 1.3em) / 2);
-        position: relative;
+      }
+      .close {
+        transition: background-color 0.2s;
+        background-color: #790f24;
+        position: fixed;
+        right: 0.5em;
         &:hover {
-          background-color: #ff1744;
+          background-color: #c00b2f;
         }
       }
       .minimize {
-        -webkit-app-region: no-drag;
         background-color: #474b4f;
-        width: 1.3em;
-        height: 1.3em;
-        top: calc((1.7em - 1.3em) / 2);
-        right: 2.4em;
+        right: 2.3em;
         position: fixed;
       }
     }

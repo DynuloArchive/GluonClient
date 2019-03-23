@@ -2,7 +2,7 @@
   <div id="app">
     <Frame/>
     <CommunityList/>
-    <Content/>
+    <Content :active="active"/>
   </div>
 </template>
 
@@ -19,7 +19,9 @@ import CommunityList from './components/CommunityList.vue';
     CommunityList,
   },
 })
-export default class App extends Vue {}
+export default class App extends Vue {
+  public active: any = 0;
+}
 </script>
 
 <style>
@@ -27,7 +29,6 @@ export default class App extends Vue {}
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   color: #2c3e50;
-
   height: 100%;
 }
 </style>
