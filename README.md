@@ -1,29 +1,6 @@
-# gluonclient
+# GluonClient
 
-## Project setup
-```
-npm install
-```
+WIP, only the interface is here
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+![image](https://cdn.discordapp.com/attachments/495206962615812098/558908853534588941/Capture.PNG)
 
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Run your tests
-```
-npm run test
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
