@@ -17,7 +17,7 @@
     "sass-loader": "^7.1.0",
     "vue": "^2.6.6",
     "vue-class-component": "^6.0.0",
-    "vue-property-decorator": "^7.0.0"
+    "vue-property-decorator": "^8.1.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-typescript": "^3.5.0",
