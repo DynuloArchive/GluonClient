@@ -17,6 +17,7 @@
           <span class="launch">Join</span>
         </div>
       </template>
+      <div ref="output" class="output"></div>
     </template>
   </div>
 </template>
@@ -25,9 +26,39 @@
 import { Component, Prop, Watch, Vue } from 'vue-property-decorator';
 import {remote} from 'electron';
 
+import os from 'os';
+const pty = remote.require('node-pty');
+import { Terminal } from 'xterm';
+
 @Component
 export default class Content extends Vue {
   @Prop(undefined) private active: any;
+
+  mounted() {
+    setTimeout(() => {
+      const shell = os.platform() === 'win32' ? 'powershell.exe' : process.env.SHELL || '/bin/bash';
+      const ptyProcess = pty.spawn('./gluon', ['server'], {
+        name: 'xterm-color',
+        cols: 80,
+        rows: 30,
+        cwd: process.cwd(),
+        env: process.env
+      } as any);
+      const xterm = new Terminal({
+        fontFamily: 'Fira Code, Iosevka, monospace',
+        fontSize: 12,
+        experimentalCharAtlas: 'dynamic'
+      });
+      //xterm.open(this.$refs.output);
+      xterm.open(this.$refs.output as HTMLElement);
+      xterm.on('data', (data: any) => {
+        ptyProcess.write(data);
+      });
+      ptyProcess.on('data', function (data: any) {
+        xterm.write(data);
+      });
+    }, 200);
+  }
 
   private down = true;
   private allSet = false;
