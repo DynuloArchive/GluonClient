@@ -9,7 +9,7 @@
     </template>
     <div :class="'add ' + ((expand) ? 'expand' : '')">
       <div class="left-cover" @click="toggle">
-        <div :class="'button icon ' + ((expand) ? 'remove' : 'plus') + ' ' + ((fetching) ? 'spin' : '')"></div>
+        <div :class="'btn icon ' + ((expand) ? 'remove' : 'plus') + ' ' + ((fetching) ? 'spin' : '')"></div>
       </div>
       <input type="text" ref="address" placeholder="https://" @keydown.enter="lookup" @keyup="type"/>
     </div>
@@ -40,6 +40,7 @@ export default class CommunityList extends Vue {
       (window as any).getArmaDir();
     },
     reload: () => { location.reload(); },
+    term: () => { (this.$parent as any).showTerm = !(this.$parent as any).showTerm; },
   };
   public select(sel: any) {
     this.active = sel.url;
@@ -215,7 +216,7 @@ export default class CommunityList extends Vue {
         background-color: rgb(24, 67, 95);
         z-index: 2;
         cursor: pointer;
-        .button {
+        .btn {
           position: relative;
           top: 0.2em;
           left: 0.8em;

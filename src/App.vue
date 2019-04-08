@@ -3,6 +3,7 @@
     <Frame/>
     <CommunityList/>
     <Content :active="active"/>
+    <Shell/>
   </div>
 </template>
 
@@ -12,15 +13,19 @@ import Frame from './components/Frame.vue';
 import Content from './components/Content.vue';
 import CommunityList from './components/CommunityList.vue';
 
+import Shell from './components/Shell.vue';
+
 @Component({
   components: {
     Frame,
     Content,
     CommunityList,
+    Shell,
   },
 })
 export default class App extends Vue {
   public active: any = 0;
+  public showTerm: boolean = false;
 }
 </script>
 
