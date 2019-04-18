@@ -5,7 +5,7 @@
       <p>{{message}}</p>
       <div class="buttons">
         <template v-for="button in buttons">
-          <div class="button" :key="button.text" @click="run(button.callback)">
+          <div class="btn" :key="button.text" @click="run(button.callback)">
             {{button.text}}
           </div>
         </template>
@@ -98,7 +98,7 @@ export default class GluonDialog extends Vue {
         justify-content: flex-end;
         padding-right: 1em;
         padding-left: 1em;
-        .button {
+        .btn {
           background-color: rgb(189, 187, 187);
           width: 5em;
           height: 1.4em;

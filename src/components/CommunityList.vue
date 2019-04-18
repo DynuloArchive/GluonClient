@@ -1,7 +1,7 @@
 <template>
   <div class="community-list">
-    <template v-for="community in communities">
-      <div class="community" :key="community.url" :class="(active == community.url) ? 'active' : ''">
+    <template v-for="community in state.repos">
+      <div class="community" :key="community.url" :class="(state.active == community.url) ? 'active' : ''">
         <a @click="select(community)">
           <img :src="community.url + '/repo.png'" width="100%" height="100%" />
         </a>
@@ -25,15 +25,16 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
+import { State } from '../store';
 
 @Component({})
 export default class CommunityList extends Vue {
-  public communities: any[] = JSON.parse(localStorage.getItem('communities') || '[]') || [];
-  private active =  localStorage.getItem('active') || '';
   private expand = false;
   private fetching = false;
   private actioning = false;
   private command = '';
+  private store = (window as any).store;
+  private state: State = (window as any).store.state;
   private actions: {[key: string]: () => void} = {
     arma3: () => {
       localStorage.setItem('arma3dir', '');
@@ -43,9 +44,7 @@ export default class CommunityList extends Vue {
     term: () => { (this.$parent as any).showTerm = !(this.$parent as any).showTerm; },
   };
   public select(sel: any) {
-    this.active = sel.url;
-    localStorage.setItem('active', sel.url);
-    this.$parent.$data.active = sel;
+    this.store.commit('active', sel.url);
   }
   public toggle() {
     this.expand = !this.expand;
@@ -56,9 +55,6 @@ export default class CommunityList extends Vue {
     }
   }
   protected mounted() {
-    if (this.active !== '' && this.communities != null) {
-      Vue.set(this.$parent.$data, 'active', this.communities.find((v) => v.url === this.active));
-    }
     window.addEventListener('keydown', (ev) => {
       if (!this.expand && ev.key === 'z' && ev.ctrlKey) {
         ev.preventDefault();
@@ -123,8 +119,7 @@ export default class CommunityList extends Vue {
       }
       response.json().then((obj: any) => {
         obj.url = address;
-        this.communities.push(obj);
-        localStorage.setItem('communities', JSON.stringify(this.communities));
+        this.store.commit('new', {key: address, repo: obj});
         this.fetching = false;
         this.expand = false;
         this.select(obj);

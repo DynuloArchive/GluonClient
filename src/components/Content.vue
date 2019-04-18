@@ -1,22 +1,23 @@
 <template>
   <div class="content">
-    <template v-if="active === undefined || active === 0">
-      <h1>No Repos!</h1>
-      <p>Use the + button in the bottom left to add your first repo.</p>
-    </template>
-    <template v-else>
-      <h1>{{active.name}}</h1>
-      <span class="dir">{{dir}}</span>
-      <div class="download" @click="download" v-if="ready">
-        <i :class="'fas fa-download ' + ((down) ? 'active' : '')"></i>
-        <i :class="'fas fa-rocket ' + ((down) ? '' : 'active')"></i>
-      </div>
-      <template v-for="server in active.servers">
-        <div class="server" :key="server.address">
-          {{server.name}}
-          <span class="button launch"><i class="fas fa-play"></i> Join</span>
-        </div>
+    <h1>{{repo.name}}</h1>
+    <span class="dir" @click="selectDir">{{repo.dir}}</span>
+    <div class="download">
+      <template v-if="stage === 'cmd'">
+        <i @click="download" class="fas fa-download"></i>
       </template>
+      <template v-if="stage === 'down'">
+        <i class="fas fa-circle-notch fa-spin"></i>
+      </template>
+      <template v-if="stage === 'ready'">
+        <i @click="launch" class="fas fa-rocket"></i>
+      </template>
+    </div>
+    <template v-for="server in repo.servers">
+      <div class="server" :key="server.address">
+        {{server.name}}
+        <span class="button launch"><i class="fas fa-play"></i> Join</span>
+      </div>
     </template>
   </div>
 </template>
@@ -24,16 +25,15 @@
 <script lang="ts">
 import { Component, Prop, Watch, Vue } from 'vue-property-decorator';
 import {remote} from 'electron';
+import { Repo } from '../store';
 
 @Component
 export default class Content extends Vue {
-  @Prop(undefined) private active: any;
+  @Prop(undefined) private repo: any;
 
-  private down = true;
-  private dir = localStorage.getItem(this.active.url + '.dir') || '';
+  private store = (window as any).store;
 
   private ws: any = undefined;
-  private ready = false;
   private stage = 'cmd';
   private queue = 0;
 
@@ -41,49 +41,58 @@ export default class Content extends Vue {
     remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
       properties: ['openDirectory'],
     }, (dir) => {
-      localStorage.setItem(this.active.url + '.dir', dir[0]);
-      this.dir = dir[0];
+      localStorage.setItem(this.repo.url + '.dir', dir[0]);
+      this.store.commit('set', {repo: this.repo.url, key: 'dir', data: dir[0]});
+      this.stage = 'cmd';
+      this.ws.send('verify');
     });
   }
 
-  @Watch('active')
-  private onActiveChanged(val: any, old: any) {
-    if (this.active === undefined) { return; }
-    this.dir = localStorage.getItem(this.active.url + '.dir') || '';
-    const comp = this;
-    if (this.dir === '') {
+  protected mounted() {
+    const vm = this;
+
+    if (this.repo.dir === '' || this.repo.dir === undefined) {
       (window as any).createDialog(
         'Repo Directory',
         'Select a download directory for the mods in this repo.',
-        () => { this.verify(); },
+        () => { },
         [
             {
               text: 'Select',
               style: '',
-              callback: comp.selectDir,
+              callback: vm.selectDir,
             },
           ],
         false,
       );
-    } else {
-      this.verify();
     }
-  }
 
-  protected mounted() {
     // TODO check gluon server version
-    const vm = this;
+    if (vm.ws !== undefined) { return; }
     setTimeout(() => {
       vm.ws = new WebSocket('ws://localhost:51462');
       (vm.ws as WebSocket).onmessage = (event) => {
-        console.log(event.data);
+        console.log(event.data, vm.stage);
+        if (!isNaN(parseInt(event.data, 10))) {
+          console.log('version:', event.data);
+          let check = () => {
+            if (vm.repo.dir !== '' && vm.repo.dir !== undefined) {
+              vm.stage = 'cmd';
+              vm.ws.send('dir');
+            } else {
+              setTimeout(check, 250);
+            }
+          }
+          check();
+          return;
+        }
         if (vm.stage === 'cmd') {
           switch (event.data) {
             case 'dir':
-              vm.ws.send(vm.dir);
+              vm.ws.send(vm.repo.dir);
               break;
             case 'url':
-              vm.ws.send(vm.active.url);
+              vm.ws.send(vm.repo.url);
               break;
             case 'cmd':
               vm.ws.send('verify');
@@ -91,40 +100,43 @@ export default class Content extends Vue {
             default:
               if (event.data.startsWith('Q')) {
                 let queue = event.data.split(' ')[1];
-                vm.ready = true;
                 if (queue === "0") {
-                  vm.down = false;
+                  vm.stage = 'ready'
                 } else {
                   vm.queue = queue;
+                  vm.stage = 'cmd';
                 }
               }
           }
         } else if (vm.stage === 'down') {
           if (event.data === 'Done') {
-            vm.down = false;
+            vm.stage = 'ready';
           } else {
 
+          }
+        } else if (vm.stage === 'ready') {
+          if (event.data.startsWith('Q')) {
+            let queue = event.data.split(' ')[1];
+            if (queue === "0") {
+              console.log("Launching Arma");
+            } else {
+              vm.stage = 'cmd';
+            }
           }
         }
       }
     }, 500);
   }
 
-  private verify() {
-    const vm = this;
-    let check = () => {
-      if (vm.ws !== undefined) {
-        this.ws.send('dir');
-      } else {
-        setTimeout(check, 250);
-      }
-    }
-    check();
-  }
-
   public download() {
     this.stage = 'down';
     this.ws.send('fetch');
+  }
+
+  public launch() {
+    if (this.stage === 'ready') {
+      this.ws.send('verify');
+    }
   }
 }
 </script>
@@ -157,16 +169,10 @@ export default class Content extends Vue {
     right: 3em;
     color: white;
     i {
-      opacity: 0;
-      transition: opacity 0.2s;
-      position: absolute;
-      top: 0;
-      right: 0;
       font-size: 1.5rem;
+    }
+    i::before {
       cursor: pointer;
-      &.active {
-        opacity: 1;
-      }
     }
   }
   .server {

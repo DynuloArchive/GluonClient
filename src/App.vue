@@ -2,7 +2,9 @@
   <div id="app">
     <Frame/>
     <CommunityList/>
-    <Content :active="active"/>
+    <template v-for="repo in state.repos">
+      <Content :key="repo.url" :repo="repo" :style="(state.active === repo.url) ? '' : 'display:none'"/>
+    </template>
     <Shell/>
   </div>
 </template>
@@ -15,6 +17,8 @@ import CommunityList from './components/CommunityList.vue';
 
 import Shell from './components/Shell.vue';
 
+import { State } from './store';
+
 @Component({
   components: {
     Frame,
@@ -24,8 +28,8 @@ import Shell from './components/Shell.vue';
   },
 })
 export default class App extends Vue {
-  public active: any = 0;
   public showTerm: boolean = false;
+  private state: State = (window as any).store.state;
 }
 </script>
 

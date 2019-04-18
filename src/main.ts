@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import Vuex from 'vuex';
 import App from './App.vue';
 import {remote} from 'electron';
 import GluonDialog from './components/Dialog.vue';
@@ -22,12 +23,52 @@ Vue.config.productionTip = false;
   document.body.appendChild(instance.$el);
 };
 
+Vue.use(Vuex);
+
+(window as any).store = new Vuex.Store({
+  state: {
+    active: '',
+    repos: {},
+  } as State,
+  mutations: {
+    active(state, key: string) {
+      state.active = key;
+      localStorage.setItem('active', key);
+    },
+    load(state, repos: {[key: string]: Repo}) {
+      state.repos = repos;
+    },
+    new(state, data: {key: string, repo: Repo}) {
+      const repos = JSON.parse(JSON.stringify(state.repos));
+      repos[data.key] = data.repo;
+      state.repos = repos;
+      localStorage.setItem('repos', JSON.stringify(state.repos));
+    },
+    set(state, data: {repo: string, key: string, data: any}) {
+      const repos = JSON.parse(JSON.stringify(state.repos));
+      repos[data.repo][data.key] = data.data;
+      state.repos = repos;
+      localStorage.setItem('repos', JSON.stringify(state.repos));
+    },
+  },
+  actions: {
+    load(context) {
+      context.commit('load', JSON.parse(localStorage.getItem('repos') || '{}') || {});
+      context.commit('active', localStorage.getItem('active') || '');
+    },
+  },
+});
+
 new Vue({
   render: (h) => h(App),
+  mounted() {
+    (window as any).store.dispatch('load');
+  },
 }).$mount('#app');
 
 import fs from 'fs';
 import path from 'path';
+import { State, Repo } from './store';
 
 (window as any).getArmaDir = () => {
   const arma3dir = localStorage.getItem('arma3dir');
