@@ -24,7 +24,7 @@
 
 <script lang="ts">
 import { Component, Prop, Watch, Vue } from 'vue-property-decorator';
-import {remote} from 'electron';
+import { remote } from 'electron';
 import { Repo } from '../store';
 
 @Component
@@ -57,12 +57,12 @@ export default class Content extends Vue {
         'Select a download directory for the mods in this repo.',
         () => { },
         [
-            {
-              text: 'Select',
-              style: '',
-              callback: vm.selectDir,
-            },
-          ],
+          {
+            text: 'Select',
+            style: '',
+            callback: vm.selectDir,
+          },
+        ],
         false,
       );
     }
@@ -169,6 +169,9 @@ export default class Content extends Vue {
     right: 3em;
     color: white;
     i {
+      position: absolute;
+      top: 0;
+      right: 0;
       font-size: 1.5rem;
     }
     i::before {
