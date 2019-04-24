@@ -25,7 +25,24 @@
 <script lang="ts">
 import { Component, Prop, Watch, Vue } from 'vue-property-decorator';
 import { remote } from 'electron';
+import { spawn, exec} from 'child_process';
+
 import { Repo } from '../store';
+import { join } from 'path';
+
+function isRunning(win: string, nix: string): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const plat = process.platform;
+    const cmd = (plat === 'win32') ? 'tasklist' : 'ps -ax | grep ' + nix;
+    const proc = (plat === 'win32') ? win : nix;
+    if (cmd === '' || proc === '') {
+      resolve(false);
+    }
+    exec(cmd, (err, stdout, stderr) => {
+      resolve(stdout.toLowerCase().indexOf(proc.toLowerCase()) > -1);
+    });
+  });
+}
 
 @Component
 export default class Content extends Vue {
@@ -37,15 +54,15 @@ export default class Content extends Vue {
   private stage = 'cmd';
   private queue = 0;
 
-  private selectDir() {
-    remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
-      properties: ['openDirectory'],
-    }, (dir) => {
-      localStorage.setItem(this.repo.url + '.dir', dir[0]);
-      this.store.commit('set', {repo: this.repo.url, key: 'dir', data: dir[0]});
-      this.stage = 'cmd';
+  public download() {
+    this.stage = 'down';
+    this.ws.send('fetch');
+  }
+
+  public launch() {
+    if (this.stage === 'ready') {
       this.ws.send('verify');
-    });
+    }
   }
 
   protected mounted() {
@@ -75,14 +92,14 @@ export default class Content extends Vue {
         console.log(event.data, vm.stage);
         if (!isNaN(parseInt(event.data, 10))) {
           console.log('version:', event.data);
-          let check = () => {
+          const check = () => {
             if (vm.repo.dir !== '' && vm.repo.dir !== undefined) {
               vm.stage = 'cmd';
               vm.ws.send('dir');
             } else {
               setTimeout(check, 250);
             }
-          }
+          };
           check();
           return;
         }
@@ -99,9 +116,9 @@ export default class Content extends Vue {
               break;
             default:
               if (event.data.startsWith('Q')) {
-                let queue = event.data.split(' ')[1];
-                if (queue === "0") {
-                  vm.stage = 'ready'
+                const queue = event.data.split(' ')[1];
+                if (queue === '0') {
+                  vm.stage = 'ready';
                 } else {
                   vm.queue = queue;
                   vm.stage = 'cmd';
@@ -116,27 +133,41 @@ export default class Content extends Vue {
           }
         } else if (vm.stage === 'ready') {
           if (event.data.startsWith('Q')) {
-            let queue = event.data.split(' ')[1];
-            if (queue === "0") {
-              console.log("Launching Arma");
+            const queue = event.data.split(' ')[1];
+            if (queue === '0') {
+              isRunning('arma3_x64.exe', 'arma3_x64.exe').then((running) => {
+                console.log('Launching Arma');
+                console.log(join(localStorage.getItem('arma3dir')!, 'arma3_x64.exe'));
+                let mods = '-mod=';
+                Object.values((this.repo as Repo).mods).forEach((mod) => {
+                  mods += join(this.repo.dir, mod.path) + ';';
+                });
+                console.log(mods);
+                const armap = spawn(join(localStorage.getItem('arma3dir')!, 'arma3_x64.exe'), [mods], {
+                  cwd: localStorage.getItem('arma3dir')!,
+                  detached: true,
+                });
+                armap.unref();
+                vm.stage = 'cmd';
+              });
             } else {
               vm.stage = 'cmd';
             }
           }
         }
-      }
+      };
     }, 500);
   }
 
-  public download() {
-    this.stage = 'down';
-    this.ws.send('fetch');
-  }
-
-  public launch() {
-    if (this.stage === 'ready') {
+  private selectDir() {
+    remote.dialog.showOpenDialog(remote.getCurrentWindow(), {
+      properties: ['openDirectory'],
+    }, (dir) => {
+      localStorage.setItem(this.repo.url + '.dir', dir[0]);
+      this.store.commit('set', {repo: this.repo.url, key: 'dir', data: dir[0]});
+      this.stage = 'cmd';
       this.ws.send('verify');
-    }
+    });
   }
 }
 </script>

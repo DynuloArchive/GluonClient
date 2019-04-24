@@ -1,6 +1,6 @@
 <template>
   <div class="frame">
-    <h3>Gluon</h3>
+    <h3>Gluon&nbsp;<small>{{version}}</small></h3>
     <div class="buttons">
       <div class="close" @click="close"></div>
       <div class="minimize" @click="minimize"></div>
@@ -13,6 +13,8 @@ import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component
 export default class Frame extends Vue {
+  private version = require('electron').remote.app.getVersion();
+
   private close() {
     const remote = require('electron').remote;
     remote.getCurrentWindow().close();
@@ -28,6 +30,10 @@ export default class Frame extends Vue {
   h3 {
     margin-top: 0;
     line-height: 1.6em;
+    small {
+      line-height: 1.6em;
+      font-size: 0.5em;
+    }
   }
   .frame {
     -webkit-app-region: drag;

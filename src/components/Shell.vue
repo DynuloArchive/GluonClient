@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import { Component, Prop, Watch, Vue } from 'vue-property-decorator';
-import {remote} from 'electron';
+import { remote } from 'electron';
 
 import os from 'os';
 import spawn from 'child_process';

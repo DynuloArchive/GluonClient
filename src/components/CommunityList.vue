@@ -40,6 +40,7 @@ export default class CommunityList extends Vue {
       localStorage.setItem('arma3dir', '');
       (window as any).getArmaDir();
     },
+    devtools: () => { require('remote').getCurrentWindow().toggleDevTools(); },
     reload: () => { location.reload(); },
     term: () => { (this.$parent as any).showTerm = !(this.$parent as any).showTerm; },
   };

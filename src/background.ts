@@ -1,5 +1,8 @@
 'use strict';
 
+import { autoUpdater } from 'electron-updater';
+autoUpdater.checkForUpdatesAndNotify();
+
 import { app, protocol, BrowserWindow } from 'electron';
 import {
   createProtocol,
