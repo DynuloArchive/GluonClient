@@ -61,12 +61,33 @@ export default class Content extends Vue {
 
   public launch() {
     if (this.stage === 'ready') {
+      console.log('running verify');
       this.ws.send('verify');
     }
   }
 
   protected mounted() {
     const vm = this;
+
+    fetch(this.repo.url + 'config.json').then((response: any) => {
+      if (response.status !== 200) {
+        (window as any).createDialog(
+          'Repo Not Found',
+          'This repository could not be reached, it will not be useable.',
+        );
+        return;
+      }
+      response.json().then((obj: any) => {
+        obj.url = this.repo.url;
+        obj.dir = this.repo.dir;
+        this.store.commit('repo', {key: this.repo.url, repo: obj});
+      });
+    }).catch(() => {
+      (window as any).createDialog(
+        'Invalid Address',
+        'No server could be reached at the address',
+      );
+    });
 
     if (this.repo.dir === '' || this.repo.dir === undefined) {
       (window as any).createDialog(
@@ -87,6 +108,7 @@ export default class Content extends Vue {
     // TODO check gluon server version
     if (vm.ws !== undefined) { return; }
     setTimeout(() => {
+      console.log('creating socket');
       vm.ws = new WebSocket('ws://localhost:51462');
       (vm.ws as WebSocket).onmessage = (event) => {
         console.log(event.data, vm.stage);

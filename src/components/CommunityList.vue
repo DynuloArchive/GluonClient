@@ -25,6 +25,7 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
+import { remote } from 'electron';
 import { State } from '../store';
 
 @Component({})
@@ -120,7 +121,7 @@ export default class CommunityList extends Vue {
       }
       response.json().then((obj: any) => {
         obj.url = address;
-        this.store.commit('new', {key: address, repo: obj});
+        this.store.commit('repo', {key: address, repo: obj});
         this.fetching = false;
         this.expand = false;
         this.select(obj);

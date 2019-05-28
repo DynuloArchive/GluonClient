@@ -38,7 +38,7 @@ Vue.use(Vuex);
     load(state, repos: {[key: string]: Repo}) {
       state.repos = repos;
     },
-    new(state, data: {key: string, repo: Repo}) {
+    repo(state, data: {key: string, repo: Repo}) {
       const repos = JSON.parse(JSON.stringify(state.repos));
       repos[data.key] = data.repo;
       state.repos = repos;

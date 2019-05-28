@@ -7,12 +7,12 @@ module.exports = {
       builderOptions: {
         win: {
           extraFiles: [
-            "gluon.exe"
+            "gluonserver.exe"
           ]
         },
         linux: {
           extraFiles: [
-            "gluon"
+            "gluonserver"
           ]
         },
         publish: [{

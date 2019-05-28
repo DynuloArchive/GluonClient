@@ -19,7 +19,7 @@ export default class Shell extends Vue {
   private output = '';
 
   private mounted() {
-    const command = spawn.spawn('./gluon', ['server']);
+    const command = spawn.spawn('./gluonserver', ['server']);
     const decoder = new TextDecoder('utf-8');
     command.stdout!.on('data', (data) => {
       this.output += decoder.decode(data);
